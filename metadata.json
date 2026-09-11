@@ -1,0 +1,10 @@
+{
+  "name": "Hand Gesture Airplane Shooter",
+  "description": "Webcam hand-gesture controlled airplane shooting game built with MediaPipe, OpenCV, and Pygame. Includes in-browser live gesture game and complete Python source project.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
