@@ -1,120 +1,111 @@
 /**
- * types.ts - Shared interfaces and types for the Hand-Gesture Airplane Shooter
+ * types.ts - Shared interfaces and types for the 3D Hand-Gesture Flight Combat Simulation
  */
 
-export type GestureType = 'NONE' | 'FIST' | 'ONE_FINGER' | 'TWO_FINGERS' | 'OPEN_PALM';
-export type ActionType = 'HOLD FIRE' | 'SHOOT LASER' | 'AOE BOMB' | 'ENERGY SHIELD';
+export type GameMode = 'MENU' | 'CALIBRATING' | 'PLAYING' | 'PAUSED' | 'GAMEOVER';
+
+export type GestureType =
+  | 'NONE'
+  | 'FIST' // 0: MOVE Left / Right (Stationary hover)
+  | 'ONE_FINGER' // 1: Parallel Single Bullet
+  | 'TWO_FINGERS' // 2: Rapid Stream
+  | 'THREE_FINGERS' // 3: Plasma Sphere
+  | 'FOUR_FINGERS' // 4: Escort Drones
+  | 'FIVE_FINGERS' // 5: Laser Beam
+  | 'OPEN_PALM'; // Open Hand (Laser Beam / Shield)
+
+export type ActionType =
+  | 'HOVER / MOVE'
+  | 'SINGLE BULLET'
+  | 'RAPID STREAM'
+  | 'PLASMA SPHERE'
+  | 'ESCORT DRONES'
+  | 'LASER BEAM'
+  | 'ENERGY SHIELD'
+  | 'HOLD FIRE';
+
+export interface HandLandmark {
+  x: number;
+  y: number;
+  z: number;
+}
 
 export interface HandState {
   detected: boolean;
-  handX: number; // 0.0 to 1.0 (horizontal position)
-  handY: number; // 0.0 to 1.0
+  handX: number; // 0.0 to 1.0 (calibrated horizontal position)
+  handY: number; // 0.0 to 1.0 (calibrated vertical position)
+  rawX?: number;
+  rawY?: number;
   fingerCount: number;
   gesture: GestureType;
   action: ActionType;
-  landmarks?: Array<{ x: number; y: number; z: number }>;
+  confidence?: number;
+  landmarks?: HandLandmark[];
 }
 
-export interface Bullet {
+export interface CalibrationData {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  centerX: number;
+  centerY: number;
+  isCalibrated: boolean;
+  step: 'CENTER' | 'LEFT_RIGHT' | 'UP_DOWN' | 'GESTURES' | 'READY';
+}
+
+export interface TargetLockHUD {
   id: number;
-  x: number;
-  y: number;
-  vx?: number;
-  speed: number;
-  damage: number;
-  width: number;
-  height: number;
-  color?: string;
+  screenX: number;
+  screenY: number;
+  dist: number;
+  type: string;
+  locked: boolean;
 }
 
-export interface Bomb {
+export interface FlightTelemetry {
+  score: number;
+  highScore: number;
+  health: number;
+  maxHealth: number;
+  lives: number;
+  shieldEnergy: number;
+  isShieldActive: boolean;
+  gameOver: boolean;
+  wave: number;
+  level: number;
+  machSpeed: number;
+  altitude?: number;
+  airspeedKmh: number;
+  altitudeM: number;
+  vsiMs: number;
+  batteryPercent: number;
+  thrustPercent: number;
+  activeWeapon?: string;
+  bulletTimePercent: number;
+  isBulletTime: boolean;
+  escortActive: boolean;
+  combo: number;
+  comboMultiplier: number;
+  enemiesDestroyed: number;
+  fps: number;
+  rapidFireSeconds: number;
+  tripleShotSeconds: number;
+  targetLocks: TargetLockHUD[];
+
+  // Boss encounter
+  bossActive: boolean;
+  bossName: string;
+  bossClass: string;
+  bossHp: number;
+  maxBossHp: number;
+}
+
+export type EnemyType = 'INTERCEPTOR' | 'GUNSHIP' | 'DRONE' | 'SWARM_QUEEN';
+
+export interface FloatingNotice {
   id: number;
-  x: number;
-  y: number;
-  speed: number;
-  damage: number;
-  radius: number;
-}
-
-export interface BombExplosion {
-  id: number;
-  x: number;
-  y: number;
-  currentRadius: number;
-  maxRadius: number;
-  damage: number;
-  hitEnemies: Set<number>;
-}
-
-export interface Enemy {
-  id: number;
-  x: number;
-  y: number;
-  type: 'SCOUT' | 'HEAVY';
-  hp: number;
-  maxHp: number;
-  speed: number;
-  width: number;
-  height: number;
-  swayOffset: number;
-  swaySpeed: number;
-  scoreValue: number;
-}
-
-export interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  color: string;
-  alpha: number;
-  decay: number;
-}
-
-export interface Shockwave {
-  x: number;
-  y: number;
-  radius: number;
-  maxRadius: number;
-  color: string;
-  lineWidth: number;
-  alpha: number;
-}
-
-export interface Star {
-  x: number;
-  y: number;
-  speed: number;
-  baseSpeed: number;
-  size: number;
-  brightness: number;
-  layer: number; // 0 = distant dust, 1 = mid starfield, 2 = foreground streak
-  color?: string;
-  twinklePhase?: number;
-  twinkleSpeed?: number;
-}
-
-export type PowerUpType = 'RAPID_FIRE' | 'TRIPLE_SHOT' | 'SHIELD_BOOST';
-
-export interface PowerUp {
-  id: number;
-  x: number;
-  y: number;
-  type: PowerUpType;
-  vy: number;
-  width: number;
-  height: number;
-  spawnTime: number;
-  bobPhase: number;
-}
-
-export interface FloatingText {
-  id: number;
-  x: number;
-  y: number;
   text: string;
   color: string;
-  alpha: number;
-  vy: number;
+  time: number;
 }

@@ -1,6 +1,6 @@
 {
-  "name": "Hand Gesture Airplane Shooter",
-  "description": "Webcam hand-gesture controlled airplane shooting game built with MediaPipe, OpenCV, and Pygame. Includes in-browser live gesture game and complete Python source project.",
+  "name": "AERO-STRIKE 3D",
+  "description": "Hand-gesture and webcam controlled autonomous 3D combat drone flight simulation. Features optical sensor tracking, high-tech architectural testing corridor, Nexus Swarm Queen boss battles, bullet-time, and tactical weapon systems.",
   "requestFramePermissions": [
     "camera"
   ],

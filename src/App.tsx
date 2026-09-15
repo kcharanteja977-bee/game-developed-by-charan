@@ -4,19 +4,16 @@
  * and complete Python 3 (Pygame + OpenCV + MediaPipe) desktop project download & guide.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
-  Gamepad2, Code2, BookOpen, Video, Eye, EyeOff, 
-  HelpCircle, Shield, Crosshair, Sparkles, Plane, Download
+  Gamepad2, Code2, BookOpen, Plane, Download
 } from 'lucide-react';
 import { GameCanvas } from './components/GameCanvas';
-import { WebcamHandTracker } from './components/WebcamHandTracker';
 import { PythonProjectHub } from './components/PythonProjectHub';
 import { HandState, GestureType, ActionType } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'game' | 'python' | 'guide'>('game');
-  const [pipVisible, setPipVisible] = useState(true);
 
   // Global hand state communicated from WebcamHandTracker to GameCanvas
   const [handState, setHandState] = useState<HandState>({
@@ -28,37 +25,67 @@ export default function App() {
     action: 'HOLD FIRE',
   });
 
+  // Zero-latency ref shared directly between MediaPipe worker and Three.js 60FPS flight loop
+  const handStateRef = useRef<HandState>({
+    detected: false,
+    handX: 0.5,
+    handY: 0.5,
+    fingerCount: 0,
+    gesture: 'NONE',
+    action: 'HOLD FIRE',
+  });
+
   // Manual gesture simulator buttons (for instant testing with or without webcam)
-  const handleSimulateGesture = (action: 'SHOOT' | 'BOMB' | 'SHIELD' | 'STOP') => {
-    let gesture: GestureType = 'NONE';
-    let actionType: ActionType = 'HOLD FIRE';
+  const handleSimulateGesture = (action: 'HOVER' | 'SINGLE' | 'RAPID' | 'PLASMA' | 'ESCORT' | 'LASER') => {
+    let gesture: GestureType = 'FIST';
+    let actionType: ActionType = 'HOVER / MOVE';
     let fingerCount = 0;
 
-    if (action === 'SHOOT') {
-      gesture = 'ONE_FINGER';
-      actionType = 'SHOOT LASER';
-      fingerCount = 1;
-    } else if (action === 'BOMB') {
-      gesture = 'TWO_FINGERS';
-      actionType = 'AOE BOMB';
-      fingerCount = 2;
-    } else if (action === 'SHIELD') {
-      gesture = 'OPEN_PALM';
-      actionType = 'ENERGY SHIELD';
-      fingerCount = 5;
-    } else {
-      gesture = 'FIST';
-      actionType = 'HOLD FIRE';
-      fingerCount = 0;
+    switch (action) {
+      case 'SINGLE':
+        gesture = 'ONE_FINGER';
+        actionType = 'SINGLE BULLET';
+        fingerCount = 1;
+        break;
+      case 'RAPID':
+        gesture = 'TWO_FINGERS';
+        actionType = 'RAPID STREAM';
+        fingerCount = 2;
+        break;
+      case 'PLASMA':
+        gesture = 'THREE_FINGERS';
+        actionType = 'PLASMA SPHERE';
+        fingerCount = 3;
+        break;
+      case 'ESCORT':
+        gesture = 'FOUR_FINGERS';
+        actionType = 'LASER BEAM'; // wingman escort
+        fingerCount = 4;
+        break;
+      case 'LASER':
+        gesture = 'OPEN_PALM';
+        actionType = 'LASER BEAM';
+        fingerCount = 5;
+        break;
+      case 'HOVER':
+      default:
+        gesture = 'FIST';
+        actionType = 'HOVER / MOVE';
+        fingerCount = 0;
+        break;
     }
 
-    setHandState((prev) => ({
-      ...prev,
+    const updatedState: HandState = {
       detected: true,
+      handX: handStateRef.current.handX,
+      handY: handStateRef.current.handY,
       fingerCount,
       gesture,
       action: actionType,
-    }));
+    };
+
+    handStateRef.current = updatedState;
+    setHandState(updatedState);
   };
 
   return (
@@ -68,22 +95,22 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Brand & App Title */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-teal-400 p-0.5 shadow-lg shadow-cyan-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-400">
-                <Plane className="w-5 h-5 -rotate-45" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-sky-400 p-0.5 shadow-lg shadow-cyan-500/20">
+              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-400 font-black text-sm">
+                3D
               </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-black tracking-tight text-white">
-                  SkyGesture Fighter
+                  AERO-STRIKE 3D
                 </h1>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-                  MediaPipe + Pygame
+                  Drone Combat Sim
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Webcam Hand-Gesture Controlled 2D Airplane Combat
+                Optical Hand-Tracking Tactical Quadcopter Simulation &amp; Dreadnought Encounter
               </p>
             </div>
           </div>
@@ -99,7 +126,7 @@ export default function App() {
               }`}
             >
               <Gamepad2 className="w-3.5 h-3.5" />
-              <span>Play In Browser</span>
+              <span>Simulation</span>
             </button>
 
             <button
@@ -111,7 +138,7 @@ export default function App() {
               }`}
             >
               <Code2 className="w-3.5 h-3.5" />
-              <span>Python Source & ZIP</span>
+              <span>Python Source &amp; ZIP</span>
             </button>
 
             <button
@@ -123,7 +150,7 @@ export default function App() {
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Windows Guide</span>
+              <span>Setup Guide</span>
             </button>
           </nav>
         </div>
@@ -133,67 +160,124 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
         {activeTab === 'game' && (
           <div className="space-y-6">
-            {/* Gesture Quick Reference Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
-                <span className="text-2xl">☝️</span>
-                <div>
-                  <div className="text-xs font-bold text-yellow-300">1 Finger (Index)</div>
-                  <div className="text-[11px] text-slate-400">Normal Plasma Laser</div>
+            {/* Gesture Quick Reference Strip (0-5 Fingers matching reference) */}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              <button
+                onClick={() => handleSimulateGesture('HOVER')}
+                className={`p-2.5 rounded-xl border text-left transition ${
+                  handState.fingerCount === 0 && handState.detected
+                    ? 'bg-zinc-800 border-zinc-500'
+                    : 'bg-slate-900/70 border-slate-800 hover:bg-slate-800/70'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-white bg-zinc-700 w-5 h-5 rounded flex items-center justify-center">0</span>
+                  <span className="text-xs text-zinc-400">✊</span>
                 </div>
-              </div>
+                <div className="text-[11px] font-bold text-zinc-200 mt-1">HOVER</div>
+                <div className="text-[9px] text-zinc-400">Stationary Evade</div>
+              </button>
 
-              <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
-                <span className="text-2xl">✌️</span>
-                <div>
-                  <div className="text-xs font-bold text-orange-400">2 Fingers (V Sign)</div>
-                  <div className="text-[11px] text-slate-400">Special AOE Bomb Attack</div>
+              <button
+                onClick={() => handleSimulateGesture('SINGLE')}
+                className={`p-2.5 rounded-xl border text-left transition ${
+                  handState.fingerCount === 1 && handState.detected
+                    ? 'bg-sky-950 border-sky-500'
+                    : 'bg-slate-900/70 border-slate-800 hover:bg-slate-800/70'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-white bg-sky-600 w-5 h-5 rounded flex items-center justify-center">1</span>
+                  <span className="text-xs text-sky-400">☝️</span>
                 </div>
-              </div>
+                <div className="text-[11px] font-bold text-sky-300 mt-1">SINGLE</div>
+                <div className="text-[9px] text-zinc-400">Kinetic Pulse</div>
+              </button>
 
-              <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
-                <span className="text-2xl">✋</span>
-                <div>
-                  <div className="text-xs font-bold text-cyan-300">Open Palm (4-5)</div>
-                  <div className="text-[11px] text-slate-400">Energy Shield Barrier</div>
+              <button
+                onClick={() => handleSimulateGesture('RAPID')}
+                className={`p-2.5 rounded-xl border text-left transition ${
+                  handState.fingerCount === 2 && handState.detected
+                    ? 'bg-emerald-950 border-emerald-500'
+                    : 'bg-slate-900/70 border-slate-800 hover:bg-slate-800/70'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-white bg-emerald-600 w-5 h-5 rounded flex items-center justify-center">2</span>
+                  <span className="text-xs text-emerald-400">✌️</span>
                 </div>
-              </div>
+                <div className="text-[11px] font-bold text-emerald-300 mt-1">RAPID</div>
+                <div className="text-[9px] text-zinc-400">Twin Cannons</div>
+              </button>
 
-              <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
-                <span className="text-2xl">✊</span>
-                <div>
-                  <div className="text-xs font-bold text-slate-300">Closed Fist (0)</div>
-                  <div className="text-[11px] text-slate-400">Cease Fire / Cruise</div>
+              <button
+                onClick={() => handleSimulateGesture('PLASMA')}
+                className={`p-2.5 rounded-xl border text-left transition ${
+                  handState.fingerCount === 3 && handState.detected
+                    ? 'bg-cyan-950 border-cyan-500'
+                    : 'bg-slate-900/70 border-slate-800 hover:bg-slate-800/70'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-white bg-cyan-600 w-5 h-5 rounded flex items-center justify-center">3</span>
+                  <span className="text-xs text-cyan-400">🤟</span>
                 </div>
-              </div>
+                <div className="text-[11px] font-bold text-cyan-300 mt-1">PLASMA</div>
+                <div className="text-[9px] text-zinc-400">Blast Sphere</div>
+              </button>
+
+              <button
+                onClick={() => handleSimulateGesture('ESCORT')}
+                className={`p-2.5 rounded-xl border text-left transition ${
+                  handState.fingerCount === 4 && handState.detected
+                    ? 'bg-amber-950 border-amber-500'
+                    : 'bg-slate-900/70 border-slate-800 hover:bg-slate-800/70'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-white bg-amber-600 w-5 h-5 rounded flex items-center justify-center">4</span>
+                  <span className="text-xs text-amber-400">🖖</span>
+                </div>
+                <div className="text-[11px] font-bold text-amber-300 mt-1">ESCORT</div>
+                <div className="text-[9px] text-zinc-400">Twin Wingmen</div>
+              </button>
+
+              <button
+                onClick={() => handleSimulateGesture('LASER')}
+                className={`p-2.5 rounded-xl border text-left transition ${
+                  handState.fingerCount === 5 && handState.detected
+                    ? 'bg-rose-950 border-rose-500'
+                    : 'bg-slate-900/70 border-slate-800 hover:bg-slate-800/70'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-white bg-rose-600 w-5 h-5 rounded flex items-center justify-center">5</span>
+                  <span className="text-xs text-rose-400">🖐️</span>
+                </div>
+                <div className="text-[11px] font-bold text-rose-300 mt-1">BEAM</div>
+                <div className="text-[9px] text-zinc-400">Piercing Laser</div>
+              </button>
             </div>
 
-            {/* Game Canvas & Webcam PIP Layout */}
+            {/* Game Canvas & Integrated Bottom-Right Optical Sensors Webcam PIP */}
             <div className="relative flex justify-center">
-              {/* Main Game Stage */}
+              {/* Main 3D Flight Simulation Stage */}
               <GameCanvas
                 handState={handState}
+                handStateRef={handStateRef}
+                onHandUpdate={setHandState}
                 onSimulateGesture={handleSimulateGesture}
               />
-
-              {/* Floating MediaPipe Webcam PIP (Top Right) */}
-              <div className="absolute top-14 right-2 sm:right-6 z-10">
-                <WebcamHandTracker
-                  onHandUpdate={setHandState}
-                  pipVisible={pipVisible}
-                  onTogglePip={() => setPipVisible(!pipVisible)}
-                />
-              </div>
             </div>
 
             {/* Instructions & Features Card */}
             <div className="max-w-[840px] mx-auto bg-slate-900/60 border border-slate-800 rounded-xl p-4 text-xs text-slate-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <p className="font-semibold text-slate-200">
-                  ✈️ Hand Steering Tip: Move your hand left and right in front of your camera.
+                  🎯 3D Drone Flight &amp; Tactical Weapons: Guide your hand to navigate the drone through the corridor.
                 </p>
                 <p className="mt-0.5">
-                  The airplane smoothly tracks your hand horizontal position. You can also use arrow keys or mouse pointer as a backup.
+                  Show 0 fingers (Fist) to hover, 1 finger for single bullet, 2 for rapid stream, 3 for plasma sphere, 4 to summon escort wingmen, and 5 for continuous laser beam.
                 </p>
               </div>
 
@@ -222,7 +306,7 @@ export default function App() {
       {/* Clean Minimalist Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500">
         <p>
-          Hand-Gesture Airplane Shooter • Python 3, Pygame, OpenCV & MediaPipe Hands
+          AERO-STRIKE 3D • Real-Time Computer Vision Drone Combat Simulation
         </p>
       </footer>
     </div>
